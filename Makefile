@@ -1,14 +1,16 @@
-CC := avr-gcc
+ CC := avr-gcc
 ISA := atmega328p #for gcc-avr
 CLOCK := 8000000 #for the F_CPU constant definition. can also be defined in the code i suppose
-DEVICE := ATMEGA328P@DIP28 #for minipro
-OPTIMISATIONS := 1
+#for minipro
+DEVICE := ATMEGA328P@DIP28
+OPTIMISATIONS := s
+FUSE_FILE := fuses.conf
 
 #internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks
-HI_FUSE := -U hfuse:w:0xd9:m
-LO_FUSE := -U lfuse:w:0xe0:m
-E_FUSE := -U efuse:w:0xFF:m
-LOCK_FUSE := -U lock:w:0xFF:m
+lfuse := 0x62
+hfuse := 0xd6
+efuse := 0xf9
+lock := 0xff
 
 a.out:main.c
 	${CC} main.c ${VERBOSE} -O${OPTIMISATIONS} -mmcu=${ISA} -DF_CPU=${CLOCK} -Wall -o a.out
@@ -19,7 +21,15 @@ print_headers:set_headers a.out
 set_headers:
 	$(eval VERBOSE = -v)
 
-.PHONY:print_headers set_headers
+fuses:
+	$(file > ${FUSE_FILE},lfuse=${lfuse})
+	$(file >> ${FUSE_FILE},hfuse=${hfuse})
+	$(file >> ${FUSE_FILE},efuse=${efuse})
+	$(file >> ${FUSE_FILE},lock=${lock})
+	minipro -p ${DEVICE} -w ${FUSE_FILE} -c config
+	rm ${FUSE_FILE}
+
+.PHONY:print_headers set_headers fuses
 
 #references
 # https://ece-aclasses.usc.edu/ee459/library/documents/AVR-gcc.pdf
