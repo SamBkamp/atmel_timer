@@ -29,9 +29,18 @@ fuses:
 	minipro -p ${DEVICE} -w ${FUSE_FILE} -c config
 	rm ${FUSE_FILE}
 
-.PHONY:print_headers set_headers fuses
+analyse:
+	mkdir -p chip_dump
+	cd chip_dump
+	rm *
+	minipro -p ${DEVICE} -f ihex -r dump.hex -c code
+	avr-objcopy -I ihex -o elf32-avr dump.hex out.bin
+	avr-objdump -D out.bin > out.disasm
+
+.PHONY:print_headers set_headers fuses analyse
 
 #references
 # https://ece-aclasses.usc.edu/ee459/library/documents/AVR-gcc.pdf
 # https://avrdudes.github.io/avr-libc/avr-libc-user-manual-1.8.1/group__util__delay.html
 # https://eleccelerator.com/fusecalc/fusecalc.php?chip=atmega328p
+# https://www.arnabkumardas.com/arduino-tutorial/avr-memory-architecture/
