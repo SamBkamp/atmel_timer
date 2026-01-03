@@ -1,4 +1,4 @@
- CC := avr-gcc
+CC := avr-gcc
 ISA := atmega328p #for gcc-avr
 CLOCK := 8000000 #for the F_CPU constant definition. can also be defined in the code i suppose
 #for minipro
@@ -7,11 +7,10 @@ OPTIMISATIONS := s
 FUSE_FILE := fuses.conf
 
 #internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks
-lfuse := 0x62
-hfuse := 0xd6
+lfuse := 0xe2
+hfuse := 0xdf
 efuse := 0xf9
 lock := 0xff
-
 a.out:main.c
 	${CC} main.c ${VERBOSE} -O${OPTIMISATIONS} -mmcu=${ISA} -DF_CPU=${CLOCK} -Wall -o a.out
 
@@ -31,13 +30,21 @@ fuses:
 
 analyse:
 	mkdir -p chip_dump
-	cd chip_dump
-	rm *
-	minipro -p ${DEVICE} -f ihex -r dump.hex -c code
-	avr-objcopy -I ihex -o elf32-avr dump.hex out.bin
-	avr-objdump -D out.bin > out.disasm
+	rm chip_dump/*
+	minipro -p ${DEVICE} -f ihex -r chip_dump/dump.hex -c code
+	avr-objcopy -I ihex -O elf32-avr chip_dump/dump.hex chip_dump/out.bin
+	avr-objdump -D chip_dump/out.bin > chip_dump/out.disasm
+upload:
+	minipro -p "${DEVICE}" -f ihex -w main.hex -c code -u
 
-.PHONY:print_headers set_headers fuses analyse
+avrdude:
+	avrdude -v -p ${ISA} -c stk500v1 -P /dev/ttyACM0  -U "flash:w:main.hex:i" -v -F
+
+.PHONY:print_headers set_headers fuses analyse upload avrdude
+
+# "/home/sam/.arduino15/packages/arduino/tools/avrdude/6.3.0-arduino17/bin/avrdude" "-C/home/sam/.arduino15/packages/arduino/tools/avrdude/6.3.0-arduino17/etc/avrdude.conf" -v -patmega328p -cstk500v1 -P/dev/ttyACM0 -b19200 -e -Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xDE:m -Ulfuse:w:0xFF:m
+
+
 
 #references
 # https://ece-aclasses.usc.edu/ee459/library/documents/AVR-gcc.pdf
