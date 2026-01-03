@@ -6,11 +6,12 @@ DEVICE := ATMEGA328P@DIP28
 OPTIMISATIONS := s
 FUSE_FILE := fuses.conf
 
-#internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks
+#internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks. no bootloader
 lfuse := 0xe2
 hfuse := 0xdf
-efuse := 0xf9
+efuse := 0xff
 lock := 0xff
+
 a.out:main.c
 	${CC} main.c ${VERBOSE} -O${OPTIMISATIONS} -mmcu=${ISA} -DF_CPU=${CLOCK} -Wall -o a.out
 
@@ -38,7 +39,7 @@ upload:
 	minipro -p "${DEVICE}" -f ihex -w main.hex -c code -u
 
 avrdude:
-	avrdude -v -p ${ISA} -c stk500v1 -P /dev/ttyACM0  -U "flash:w:main.hex:i" -v -F
+	avrdude -v -p ${ISA} -c stk500v1 -b 19200 -P /dev/ttyACM0  -U "flash:w:main.hex:i"
 
 .PHONY:print_headers set_headers fuses analyse upload avrdude
 

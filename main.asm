@@ -1,6 +1,9 @@
 .DEVICE ATmega328p
 .DEFINE PORTB 0x05
-.DEFINE DDRB 0x04       
+.DEFINE DDRB 0x04
+.DEFINE LOOP_LO 0xFF
+.DEFINE LOOP_MI 0x69
+.DEFINE LOOP_HI 0x18
 .CSEG
 .org 0
         jmp     _start
@@ -43,29 +46,26 @@ _start:
 main:
         ldi     r24, 0x02
         out     DDRB, r24       ;r24 = 2 -> set pin PB1 to output
+while:
         out     PORTB, r1       ;r1 = 0 -> all pins to low
-        ldi     r18, 0xFF
-        ldi     r19, 0x69
-        ldi     r25, 0x18
-loop1:                          ;I think this is a busy wait
+        ldi     r18, LOOP_LO
+        ldi     r19, LOOP_MI
+        ldi     r25, LOOP_HI
+off_loop:
         subi    r18, 0x01
         sbci    r19, 0x00
         sbci    r25, 0x00
-        brne    loop1
-        rjmp    0
-        nop
+        brne    off_loop
         out     PORTB, r24      ;r24 = 2 -> PB1 to high
-        ldi     r18, 0xFF
-        ldi     r19, 0x69
-        ldi     r25, 0x18
-sub_loop:                       ;another busy wait
+        ldi     r18, LOOP_LO
+        ldi     r19, LOOP_MI
+        ldi     r25, LOOP_HI
+on_loop:
         subi    r18, 0x01
         sbci    r19, 0x00
         sbci    r25, 0x00
-        brne    sub_loop
-        rjmp    0
-        nop
-        rjmp    -42
+        brne    on_loop
+        rjmp    while
 
 _exit:
         cli
