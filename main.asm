@@ -1,6 +1,7 @@
 .DEVICE ATmega328p
 .DEFINE PORTB 0x05
 .DEFINE DDRB 0x04
+.DEFINE PINB 0x03
 .DEFINE LOOP_LO 0xFF
 .DEFINE LOOP_MI 0x69
 .DEFINE LOOP_HI 0x18
@@ -44,26 +45,41 @@ _start:
         jmp _exit
 
 main:
-        ldi r24, 0x02
-        out DDRB, r24       ;r24 = 2 -> set pin PB1 to output
+        ldi r18, 0x03
+        ldi r19, 0x06
+        ldi r17, 0x01
+        out DDRB, r19           ;r24 = 6 -> set pin PB1 & PB2 to output
+        out PORTB, r17          ;r1 = set pb0 to pull up
+        nop                     ;for synchronization
 while:
-        out PORTB, r1           ;r1 = 0 -> all pins to low
+        ldi r25, 0
+        in r25, PINB            ;read pb
+        andi r25, 0x1
+        breq PB2_toggle         ;toggle pb2 if button pressed
+next_blink:
+        out PORTB, r17          ;r1 = set pb0 to pull up
         call delay
-        out PORTB, r24          ;r24 = 2 -> PB1 to high
+        out PORTB, r18          ;all the output pins to drive high
         call delay
         jmp while
 
 
+PB2_toggle:
+        push r20
+        ldi r20, 0x04
+        eor r18, r20            ;toggle pb2
+        pop r20
+        jmp next_blink
 
 
 delay:                          ;a busy loop lol
-        ldi r18, LOOP_LO
-        ldi r19, LOOP_MI
-        ldi r25, LOOP_HI
+        ldi r20, LOOP_LO
+        ldi r21, LOOP_MI
+        ldi r22, LOOP_HI
 subbing:
-        subi r18, 1
-        sbci r19, 0
-        sbci r25, 0
+        subi r20, 1
+        sbci r21, 0
+        sbci r22, 0
         brne subbing
         ret
 
