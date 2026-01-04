@@ -1,5 +1,5 @@
 **~
 a.out
-main.hex
-main.obj
-main.eep.hex
+*.hex
+*.obj
+*.eep.hex
