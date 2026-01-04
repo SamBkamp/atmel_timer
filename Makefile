@@ -2,15 +2,17 @@ ISA := atmega328p #for avrdude
 DEVICE := ATMEGA328P@DIP28 #for minipro
 FUSE_FILE := fuses.conf
 
+FILE := main.asm
+
 #internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks. no bootloader
 lfuse := 0xe2
 hfuse := 0xdf
 efuse := 0xff
 lock := 0xff
 
-main.hex:main.asm
-	avra main.asm
-	rm main.eep.hex main.obj
+main.hex:${FILE}
+	avra ${FILE}
+	rm *eep.hex *obj
 
 fuses:
 	$(file > ${FUSE_FILE},lfuse=${lfuse})
