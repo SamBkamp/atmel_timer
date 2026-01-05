@@ -5,6 +5,7 @@
 .DEFINE TCCR0A 0x24
 .DEFINE TCCR0B 0x25
 .DEFINE OCR0A 0x27
+.DEFINE SREG 0x3F
 .DEFINE TIMSK0 0x6E
 .DEFINE LOOP_LO 0xFF
 .DEFINE LOOP_MI 0x69
@@ -25,7 +26,7 @@
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp __bad_interrupt
-        jmp toggle_pb1         ;timer/counter 0 compare match A
+        jmp flash_lights        ;timer/counter 0 compare match A
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp __bad_interrupt
@@ -59,47 +60,53 @@ main:
         out OCR0A, r18          ;set out match for 0xFF
         sei
 
-        ldi r18, 0x03
+        ldi r24, 0x00           ;for software debouncing
+        ldi r18, 0x01
         ldi r19, 0x06
-        ldi r17, 0x01
-        out DDRB, r19           ;r24 = 6 -> set pin PB1 & PB2 to output
-        out PORTB, r17          ;r1 = set pb0 to pull up
+        out DDRB, r19           ;set pin PB1 & PB2 to output
+        out PORTB, r18          ;set pb0 to pullup
+        ldi r19, 0x02           ;r19 will store ports that will be output (default just pb1) pull up should NOT be toggled
         nop                     ;for synchronization
-        ldi r20, 0
-
-stupid_loop:                    ;temporary nonsense
-        ldi r18, 0x03
-        ldi r19, 0x06
-        ldi r17, 0x01
-        jmp stupid_loop
 
 while:
         ldi r25, 0
         in r25, PINB            ;read pb
         andi r25, 0x1
         breq PB2_toggle         ;toggle pb2 if button pressed
-next_blink:
-        out PORTB, r17          ;r1 = set pb0 to pull up
-        out PORTB, r18          ;all the output pins to drive high
         jmp while
 
 
 PB2_toggle:
+        cli
+        cpi r24, 0              ;is debnce reg 0?
+        brne end                ;then skip toggle
+        ldi r24, 1              ;wait one flash cycle before allowing to toggle again
         push r20
         ldi r20, 0x04
-        eor r18, r20            ;toggle pb2
+        eor r19, r20            ;toggle pb2
         pop r20
-        jmp next_blink
+end:
+        sei
+        jmp while
 
-toggle_pb1:
+flash_lights:
+        push r16
+        in r16, SREG
+        push r16
         push r18
-        push r21
-        ldi r21, 0x04
+
         in r18, PORTB
-        eor r18, r21
+        eor r18, r19
         out PORTB, r18
-        pop r21
+
         pop r18
+        cpi r24, 0              ;is debnce reg 0?
+        breq end_int            ;then don't decr debnce reg
+        dec r24                 ;otherwise decr debnce reg
+end_int:
+        pop r16
+        out SREG, r16
+        pop r16
         reti
 
 _exit:
