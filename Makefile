@@ -5,7 +5,7 @@ FUSE_FILE := fuses.conf
 FILE := main.asm
 
 #internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks. no bootloader
-lfuse := 0xe2
+lfuse := 0x62
 hfuse := 0xdf
 efuse := 0xff
 lock := 0xff
