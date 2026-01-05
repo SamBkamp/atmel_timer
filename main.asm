@@ -92,11 +92,14 @@ PB2_toggle:
         jmp next_blink
 
 toggle_pb1:
+        push r18
         push r21
         ldi r21, 0x04
-        eor r20, r21
-        out PORTB, r20
+        in r18, PORTB
+        eor r18, r21
+        out PORTB, r18
         pop r21
+        pop r18
         reti
 
 _exit:
