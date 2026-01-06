@@ -2,6 +2,8 @@ ISA := atmega328p #for avrdude
 DEVICE := ATMEGA328P@DIP28 #for minipro
 FUSE_FILE := fuses.conf
 
+OUTDEVICE := /dev/ttyACM0
+
 FILE := main.asm
 
 #internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks. no bootloader
@@ -30,7 +32,7 @@ analyse:
 	avr-objdump -D chip_dump/out.bin > chip_dump/out.disasm
 
 install:main.hex
-	avrdude -v -p ${ISA} -c stk500v1 -b 19200 -P /dev/ttyACM0  -U "flash:w:main.hex:i"
+	avrdude -v -p ${ISA} -c stk500v1 -b 19200 -P ${OUTDEVICE}  -U "flash:w:main.hex:i"
 
 .PHONY:fuses analyse install
 
