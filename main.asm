@@ -80,7 +80,7 @@ PB2_toggle:
         cli
         cpi r24, 0              ;is debnce reg 0?
         brne end                ;then skip toggle
-        ldi r24, 1              ;wait one flash cycle before allowing to toggle again
+        ldi r24, 2              ;wait two flash cycles before allowing to toggle again
         push r20
         ldi r20, 0x04
         eor r19, r20            ;toggle pb2
