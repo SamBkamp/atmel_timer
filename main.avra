@@ -1,44 +1,7 @@
-.DEVICE ATmega328p
-.DEFINE PINB 0x03
-.DEFINE DDRB 0x04
-.DEFINE PORTB 0x05
-.DEFINE TCCR0A 0x24
-.DEFINE TCCR0B 0x25
-.DEFINE OCR0A 0x27
-.DEFINE SREG 0x3F
-.DEFINE TIMSK0 0x6E
-.DEFINE LOOP_LO 0xFF
-.DEFINE LOOP_MI 0x69
-.DEFINE LOOP_HI 0x18
+.include "defines.avra"
+.include "jumptable.avra"
 .CSEG
-.org 0                          ;vector jump table
-        jmp _start              ;restart
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp flash_lights        ;timer/counter 0 compare match A
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-        jmp __bad_interrupt
-
+.org 0x36                       ;after jump table
 _start:
         eor r1, r1
         out 0x3f, r1        ;zero SREG
@@ -114,5 +77,3 @@ end_int:
 
 _exit:
         cli
-__bad_interrupt:
-        jmp 0

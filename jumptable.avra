@@ -1,0 +1,34 @@
+.ifndef JUMPTABLE_TIMER
+.define JUMPTABLE_TIMER
+.CSEG
+.org 0                          ;vector jump table
+        jmp _start              ;restart
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp flash_lights        ;timer/counter 0 compare match A
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        jmp __bad_interrupt
+        
+__bad_interrupt:
+        jmp 0
+.endif
