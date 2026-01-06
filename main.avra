@@ -22,27 +22,66 @@ setup:
         sts TIMSK0, r18         ;set output compare intr. enable A
         ldi r18, 0xFF
         out OCR0A, r18          ;set out match for 0xFF
-        sei
         ret
 
 
 main:
         call setup
 
-        ldi r24, 0x00           ;for software debouncing
+        ldi r24, 0x00           ;for software debouncing (btn 1)
+        ldi r26, 0x00           ;also for software debouncing (btn 2)
         ldi r18, 0x01
         ldi r19, 0x06
         out DDRB, r19           ;set pin PB1 & PB2 to output
         out PORTB, r18          ;set pb0 to pullup
-        out DDRC, r1            ;set all port c to input
+        nop
+        ldi r18, 0x20
+        out DDRC, r24           ;set all pins to input
+        out PORTC, r18          ;PC5 to pullup
         ldi r19, 0x02           ;r19 will store ports that will be output (default just pb1) pull up should NOT be toggled
         nop                     ;for synchronization
+        sei
 
 while:
-        ldi r25, 0
+        eor r25, r25
         in r25, PINB            ;read pb
         andi r25, 0x1
         breq PB2_toggle         ;toggle pb2 if button pressed
+
+        cli                     ;only read pinc if light is set to off state
+        mov r25, r19
+        andi r25, 0x04
+        sei
+        brne while
+
+        in r25, PINC            ;read pc
+        andi r25, 0x20          ;0b100000
+        breq PB2_ON
+        jmp PB2_OFF
+        jmp while
+
+;sreg
+PB2_OFF:
+        cli
+        push r24
+        in r24, PORTB
+        andi r24, 0xfb          ;0b11111011
+        out PORTB, r24
+        pop r24
+        sei
+        jmp while
+;sreg
+PB2_ON:
+        cpi r26, 0
+        brne while
+        cli
+        push r24
+        in r24, PORTB
+        ori r24, 0x04
+        out PORTB, r24
+        ldi r26, 1
+        pop r24
+        sei
         jmp while
 
 ;sreg, r24, r19
@@ -56,12 +95,23 @@ PB2_toggle:
         ldi r20, 0x04
         eor r19, r20            ;toggle pb2
 
+        ;if pb2 is to be off next cycle, make sure it doesn't get "aligned" to on state
+        mov r20, r19
+        andi r20, 0x04
+        breq force_off
+
+        ;this section will "join" the current driving led
         in r20, PORTB           ;read in current value of portb
         mov r21, r20            ;copy portb to r21
         andi r20, 0x02           ;iso bit 1 (2nd bit)
         lsl r20                 ;shift bit 1 to bit 2 pos.
         or r21, r20             ;if portb is 0b011 -> 0b111 and if portb is 0b001 -> 0b001. Keeps lights aligned
+        jmp output_aligned
 
+force_off:
+        ldi r21, 0x03           ;hardcode pb0 and pb1 to be high and pb2 to be low
+
+output_aligned:
         out PORTB, r21          ;output aligned lights
         pop r21
         pop r20
@@ -81,8 +131,14 @@ flash_lights:
 
         pop r18
         cpi r24, 0              ;is debnce reg 0?
-        breq end_int            ;then don't decr debnce reg
+        breq decr_debounce      ;then don't decr debnce reg
         dec r24                 ;otherwise decr debnce reg
+
+decr_debounce:
+        cpi r26, 0
+        breq end_int
+        dec r26
+
 end_int:
         pop r16
         out SREG, r16
