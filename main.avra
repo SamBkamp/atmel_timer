@@ -126,9 +126,16 @@ debounce_timer:
         in r16, SREG
         push r16
 
+;debounces decr btn 2
         cpi r26, 0              ;r26 contains btn 2 debounce info
-        breq debounce_timer_end
+        breq debounce_btn_one
         dec r26
+
+;same thing but for btn 1
+debounce_btn_one:
+        cpi r24, 0              ;is debnce reg 0?
+        breq debounce_timer_end ;then don't decr debnce reg
+        dec r24                 ;otherwise decr debnce reg
 
 debounce_timer_end:
         pop r16
@@ -136,7 +143,7 @@ debounce_timer_end:
         pop r16
         reti
 
-
+;int handler to eor portb with whatever is in r19
 flash_lights:
         push r16
         in r16, SREG
@@ -146,13 +153,8 @@ flash_lights:
         in r18, PORTB
         eor r18, r19
         out PORTB, r18
-
         pop r18
-        cpi r24, 0              ;is debnce reg 0?
-        breq end_int            ;then don't decr debnce reg
-        dec r24                 ;otherwise decr debnce reg
 
-end_int:
         pop r16
         out SREG, r16
         pop r16
