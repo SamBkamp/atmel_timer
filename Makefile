@@ -4,7 +4,7 @@ FUSE_FILE := fuses.conf
 
 OUTDEVICE := /dev/ttyACM0
 
-FILE := main.asm
+FILE := main.avra
 
 #internal 8mhz oscillator (no div8). SPI enabled. Brown out disabled. no locks. no bootloader
 lfuse := 0x62
