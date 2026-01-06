@@ -13,7 +13,7 @@ _start:
         jmp _exit
 
 ;r18, sreg
-setup:
+timer_setup:
         ldi r18, 0x02
         out TCCR0A, r18         ;set TCCR0A to 0b00000010 (wgm01 high) (clear on ocr0a match)
         ldi r18, 0x05
@@ -27,7 +27,7 @@ setup:
 
 
 main:
-        call setup
+        call timer_setup
 
         ldi r24, 0x00           ;btn 1 software debounce (pb0)
         ldi r26, 0x00           ;btn 2 software debounce (pc5)
