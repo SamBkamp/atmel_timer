@@ -84,6 +84,9 @@ PB2_toggle:
         push r20
         ldi r20, 0x04
         eor r19, r20            ;toggle pb2
+        mov r20, r19
+        ori r20, 0x01           ;set lowest it of r20 so we can align the outputs
+        out PORTB, r20          ;align all outputs
         pop r20
 end:
         sei
