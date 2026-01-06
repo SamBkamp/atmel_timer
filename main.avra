@@ -1,10 +1,10 @@
 .include "defines.avra"
 .include "jumptable.avra"
 .CSEG
-.org 0x36                       ;after jump table
+.org 0x36                       ;after jump table + default int. handler
 _start:
         eor r1, r1
-        out 0x3f, r1        ;zero SREG
+        out SREG, r1        ;zero SREG
         ldi r28, 0xFF
         ldi r29, 0x08
         out 0x3e, r29       ;init SPH (stack pointer high) (i think)
