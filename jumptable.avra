@@ -28,7 +28,7 @@
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp __bad_interrupt
-        
+
 __bad_interrupt:
         jmp 0
 .endif
