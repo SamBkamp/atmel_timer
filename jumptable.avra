@@ -17,7 +17,7 @@
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp flash_lights        ;timer/counter 0 compare match A
-        jmp __bad_interrupt
+        jmp debounce_timer      ;timer/counter 0 compare match B
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp __bad_interrupt

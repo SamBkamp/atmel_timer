@@ -18,18 +18,19 @@ setup:
         out TCCR0A, r18         ;set TCCR0A to 0b00000010 (wgm01 high) (clear on ocr0a match)
         ldi r18, 0x05
         out TCCR0B, r18         ;set prescaler to 0b101 (clk/1024)
-        ldi r18, 0x02
-        sts TIMSK0, r18         ;set output compare intr. enable A
+        ldi r18, 0x06
+        sts TIMSK0, r18         ;set output compare intr. enable A and B
         ldi r18, 0xFF
         out OCR0A, r18          ;set out match for 0xFF
+        out OCR0B, r18          ;set another match for other match register
         ret
 
 
 main:
         call setup
 
-        ldi r24, 0x00           ;for software debouncing (btn 1)
-        ldi r26, 0x00           ;also for software debouncing (btn 2)
+        ldi r24, 0x00           ;btn 1 software debounce (pb0)
+        ldi r26, 0x00           ;btn 2 software debounce (pc5)
         ldi r18, 0x01
         ldi r19, 0x06
         out DDRB, r19           ;set pin PB1 & PB2 to output
@@ -119,6 +120,23 @@ end:
         sei
         jmp while
 
+
+debounce_timer:
+        push r16
+        in r16, SREG
+        push r16
+
+        cpi r26, 0              ;r26 contains btn 2 debounce info
+        breq debounce_timer_end
+        dec r26
+
+debounce_timer_end:
+        pop r16
+        out SREG, r16
+        pop r16
+        reti
+
+
 flash_lights:
         push r16
         in r16, SREG
@@ -131,13 +149,8 @@ flash_lights:
 
         pop r18
         cpi r24, 0              ;is debnce reg 0?
-        breq decr_debounce      ;then don't decr debnce reg
+        breq end_int            ;then don't decr debnce reg
         dec r24                 ;otherwise decr debnce reg
-
-decr_debounce:
-        cpi r26, 0
-        breq end_int
-        dec r26
 
 end_int:
         pop r16
