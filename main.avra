@@ -12,7 +12,8 @@ _start:
         call main
         jmp _exit
 
-main:
+;r18, sreg
+setup:
         ldi r18, 0x02
         out TCCR0A, r18         ;set TCCR0A to 0b00000010 (wgm01 high) (clear on ocr0a match)
         ldi r18, 0x05
@@ -22,12 +23,18 @@ main:
         ldi r18, 0xFF
         out OCR0A, r18          ;set out match for 0xFF
         sei
+        ret
+
+
+main:
+        call setup
 
         ldi r24, 0x00           ;for software debouncing
         ldi r18, 0x01
         ldi r19, 0x06
         out DDRB, r19           ;set pin PB1 & PB2 to output
         out PORTB, r18          ;set pb0 to pullup
+        out DDRC, r1            ;set all port c to input
         ldi r19, 0x02           ;r19 will store ports that will be output (default just pb1) pull up should NOT be toggled
         nop                     ;for synchronization
 
@@ -38,18 +45,25 @@ while:
         breq PB2_toggle         ;toggle pb2 if button pressed
         jmp while
 
-
+;sreg, r24, r19
 PB2_toggle:
         cli
         cpi r24, 0              ;is debnce reg 0?
         brne end                ;then skip toggle
         ldi r24, 2              ;wait two flash cycles before allowing to toggle again
         push r20
+        push r21
         ldi r20, 0x04
         eor r19, r20            ;toggle pb2
-        mov r20, r19
-        ori r20, 0x01           ;set lowest it of r20 so we can align the outputs
-        out PORTB, r20          ;align all outputs
+
+        in r20, PORTB           ;read in current value of portb
+        mov r21, r20            ;copy portb to r21
+        andi r20, 0x02           ;iso bit 1 (2nd bit)
+        lsl r20                 ;shift bit 1 to bit 2 pos.
+        or r21, r20             ;if portb is 0b011 -> 0b111 and if portb is 0b001 -> 0b001. Keeps lights aligned
+
+        out PORTB, r21          ;output aligned lights
+        pop r21
         pop r20
 end:
         sei
