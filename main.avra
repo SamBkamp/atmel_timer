@@ -15,14 +15,15 @@ _start:
 ;r18, sreg
 timer_setup:
         ldi r18, 0x02
-        out TCCR0A, r18         ;set TCCR0A to 0b00000010 (wgm01 high) (clear on ocr0a match)
+        out TCCR0A, r18    ;set TCCR0A to 0b00000010 (wgm01 high) (clear on ocr0a match)
         ldi r18, 0x05
-        out TCCR0B, r18         ;set prescaler to 0b101 (clk/1024)
+        out TCCR0B, r18    ;set prescaler to 0b101 (clk/1024)
         ldi r18, 0x06
-        sts TIMSK0, r18         ;set output compare intr. enable A and B
-        ldi r18, 0xFF
-        out OCR0A, r18          ;set out match for 0xFF
-        out OCR0B, r18          ;set another match for other match register
+        sts TIMSK0, r18    ;set output compare intr. enable A and B
+        ldi r18, 0xA0
+        out OCR0A, r18     ;set out match
+        nop                ;OCR0B needs to be lower or eq. to OCR0A as the timer reg. gets cleared on OCR0A match. If its higher, OCR0B won't be reached
+        out OCR0B, r18     ;set another match for other match register
         ret
 
 
@@ -49,13 +50,13 @@ while:
         andi r25, 0x1
         breq PB2_toggle         ;toggle pb2 if button pressed
 
-        cli                     ;only read pinc if light is set to off state
+        cli                     ;only read pinc if pb2 light is set to non-run state
         mov r25, r19
-        andi r25, 0x04
+        andi r25, 0x04          ;and copied r19 state reg with pb2 (0b100)
         sei
-        brne while
+        brne while              ;if r19 pin is set high, skip the pinc poll
 
-        in r25, PINC            ;read pc
+        in r25, PINC            ;read pinc
         andi r25, 0x20          ;0b100000
         breq PB2_ON
         jmp PB2_OFF
