@@ -14,16 +14,27 @@ _start:
 
 ;r18, sreg
 timer_setup:
+        ;setup timer 0 for clock out
         ldi r18, 0x02
         out TCCR0A, r18    ;set TCCR0A to 0b00000010 (wgm01 high) (clear on ocr0a match)
         ldi r18, 0x05
         out TCCR0B, r18    ;set prescaler to 0b101 (clk/1024)
-        ldi r18, 0x06
-        sts TIMSK0, r18    ;set output compare intr. enable A and B
-        ldi r18, 0xA0
+        ldi r18, 0x02
+        sts TIMSK0, r18    ;set output compare intr. enable A
+        ldi r18, 0x50
         out OCR0A, r18     ;set out match
-        nop                ;OCR0B needs to be lower or eq. to OCR0A as the timer reg. gets cleared on OCR0A match. If its higher, OCR0B won't be reached
-        out OCR0B, r18     ;set another match for other match register
+
+        ;setup timer 1 for debounce
+        eor r18, r18
+        sts OCR1AH, r18         ;hi byte match 00
+        sts TCCR1A, r18           ;ctc wgm11:0 low
+        ldi r18, 0b1101
+        sts TCCR1B, r18    ;set prescaler to 0b101 (clk/1024) and wgm13:2 to 0b01 = 0b01101
+        ldi r18, 0x02
+        sts TIMSK1, r18    ;set output compare intr. enable A
+        ldi r18, 0xFF      ;lo bye match 0xFF
+        sts OCR1AL, r18
+
         ret
 
 

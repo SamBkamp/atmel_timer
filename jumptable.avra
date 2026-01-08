@@ -13,11 +13,11 @@
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp __bad_interrupt
-        jmp __bad_interrupt
+        jmp debounce_timer     ;timer/counter 1 compare match A
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp flash_lights        ;timer/counter 0 compare match A
-        jmp debounce_timer      ;timer/counter 0 compare match B
+        jmp __bad_interrupt     ;timer/counter 0 compare match B
         jmp __bad_interrupt
         jmp __bad_interrupt
         jmp __bad_interrupt
@@ -30,5 +30,5 @@
         jmp __bad_interrupt
 
 __bad_interrupt:
-        jmp 0
+        reti
 .endif
